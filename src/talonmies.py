@@ -12,6 +12,11 @@ class TalonmiesData(PicklePersistence):
 
 class Talonmies:
 
+    commands = {
+        'start': cmd_start,
+        'task': cmd_task
+    }
+
     def __init__(self, config_path):
         self.cfg = configparser.ConfigParser()
         self.cfg.read(config_path)
@@ -24,8 +29,9 @@ class Talonmies:
         self.app = ApplicationBuilder().token(token).persistence(persistence=self.data).build()
 
         # Register command handlers
-        start_handler = CommandHandler('start', cmd_start)
-        self.app.add_handler(start_handler)
+        for cmd_string, cmd_bind in Talonmies.commands.items():
+            handler = CommandHandler(cmd_string, cmd_bind)
+            self.app.add_handler(handler)
     
     def start(self):
         self.app.run_polling(stop_signals=None)
