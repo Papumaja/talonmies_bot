@@ -1,3 +1,4 @@
+import asyncio
 import datetime
 
 from telegram import constants, InlineKeyboardButton, InlineKeyboardMarkup
@@ -9,7 +10,7 @@ async def clear_notification(context: CallbackContext, notification_id):
 
     notification = context.chat_data['notifications'].pop(notification_id)
     resend_job = notification['resend_job']
-    if not resend_job.removed:
+    if len(context.job_queue.get_jobs_by_name(resend_job.name)) > 0:
         resend_job.schedule_removal()
 
     user = notification['user']
@@ -42,12 +43,15 @@ async def send_reminder(context: CallbackContext):
         InlineKeyboardButton("Hoidossa!", callback_data="y")
     ]]
     message = await context.bot.send_message(chat_id=chat_id,
-                                   text=f"{user.mention_markdown_v2(name=user.name)}, {task.name} vaatii huomiotasi\!",
-                                   parse_mode=constants.ParseMode.MARKDOWN_V2,
-                                   reply_markup=InlineKeyboardMarkup(buttons))
+        text=f"{user.mention_markdown_v2(name=user.name)}, {task.name} vaatii huomiotasi\!",
+        parse_mode=constants.ParseMode.MARKDOWN_V2,
+        reply_markup=InlineKeyboardMarkup(buttons))
     # Resend the reminder after the grace period ends
-    resend_job = context.job_queue.run_once(send_reminder, task.grace_period, chat_id=chat_id, context=context.job.context)
-    context.chat_data['notifications'][message.message_id] = {'message': message, 'task': task, 'user': user, 'resend_job': resend_job}
+    resend_job = context.job_queue.run_once(send_reminder, task.grace_period,
+        chat_id=chat_id, context=context.job.context, name=f'{message.message_id}_resend')
+    context.chat_data['notifications'][message.message_id] = {
+        'message': message, 'task': task, 'user': user, 'resend_job': resend_job
+    }
     task.previous_notification = message.message_id
 
     task.currentIndex += 1
@@ -64,11 +68,14 @@ class Task:
         self.previous_notification = None
         self.job = None
     
-    def set_interval(self, interval):
+    def set_interval(self, interval, context=None, chat_id=None):
         self.interval = interval
         self.grace_period = datetime.timedelta(minutes=5) # Default of 5 minutes
         # TODO: Command for setting grace period separatedly
-        if self.grace_period > self.interval: self.grace_period = self.interval
+        if self.grace_period > self.interval: self.grace_period = self.interval / 2
+        if context is not None and chat_id is not None:
+            self.stop(context)
+            self.start(context, chat_id)
     
     def add_user(self, user):
         self.users.append(user)
@@ -81,6 +88,6 @@ class Task:
         if self.job is not None:
             self.job.schedule_removal()
         if self.previous_notification is not None:
-            clear_notification(context, self.previous_notification)
+            context.job_queue.run_once(lambda ctx: clear_notification(*(ctx.job.context)), 0, context=[context, self.previous_notification])
                 
         self.running = False

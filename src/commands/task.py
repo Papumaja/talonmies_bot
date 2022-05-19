@@ -9,6 +9,7 @@ TASK_HELP_TEXT = """Käyttö:
     /task create <nimi> <intervalli>
     /task rename <nimi> <uusi nimi>
     /task setinterval <nimi> <intervalli>
+    /task setgrace <nimi> <intervalli>
     /task join <nimi>
     /task start <nimi>
     /task stop <nimi>
@@ -26,18 +27,21 @@ async def task_create(update: Update, context: CallbackContext.DEFAULT_TYPE):
     try:
         interval = str_to_time(interval_str)
     except ValueError:
-        await context.bot.send_message(chat_id=update.effective_chat.id, text="Epähyvä aikamääre")
+        await context.bot.send_message(chat_id=update.effective_chat.id,
+            text="Epähyvä aikamääre")
         return
 
     if 'tasks' in context.chat_data:
         if name in context.chat_data['tasks']:
-            await context.bot.send_message(chat_id=update.effective_chat.id, text=f"Tehtävä {name} on jo olemassa!")
+            await context.bot.send_message(chat_id=update.effective_chat.id,
+                text=f"Tehtävä {name} on jo olemassa!")
             return
         context.chat_data['tasks'][name] = Task(name, interval)
     else:
         context.chat_data['tasks'] = {name: Task(name, interval)}
         context.chat_data['notifications'] = {}
-    await context.bot.send_message(chat_id=update.effective_chat.id, text=f"Tehtävä {name} luotu!")
+    await context.bot.send_message(chat_id=update.effective_chat.id,
+        text=f"Tehtävä {name} luotu!")
     
 
 
@@ -53,9 +57,10 @@ async def task_rename(update: Update, context: CallbackContext.DEFAULT_TYPE):
             task = context.chat_data['tasks'].pop(name, None)
             task.name = new_name
             context.chat_data['tasks'][new_name] = task
-            await context.bot.send_message(chat_id=update.effective_chat.id, text=f"Tehtävä {name} uudelleennimetty {new_name}")
+            await context.bot.send_message(chat_id=update.effective_chat.id,
+                text=f"Tehtävä {name} uudelleennimetty {new_name}")
         else:
-            await context.bot.send_message(chat_id=update.effective_chat.id, text=f"Tehtävää {name} ei ole olemassa!")
+            await warning_no_task(update, context)
             return
     else:
         await warning_no_tasks(update, context)
@@ -73,9 +78,10 @@ async def task_remove(update: Update, context: CallbackContext.DEFAULT_TYPE):
         if name in context.chat_data['tasks']:
             task = context.chat_data['tasks'].pop(name, None)
             task.stop(context)
-            await context.bot.send_message(chat_id=update.effective_chat.id, text=f"Tehtävä {name} poistettu.")
+            await context.bot.send_message(chat_id=update.effective_chat.id,
+                text=f"Tehtävä {name} poistettu.")
         else:
-            await context.bot.send_message(chat_id=update.effective_chat.id, text=f"Tehtävää {name} ei ole olemassa!")
+            await warning_no_task(update, context)
             return
     else:
         await warning_no_tasks(update, context)
@@ -92,15 +98,45 @@ async def task_setinterval(update: Update, context: CallbackContext.DEFAULT_TYPE
     try:
         new_interval = str_to_time(interval_str)
     except ValueError:
-        await context.bot.send_message(chat_id=update.effective_chat.id, text="Epähyvä aikamääre")
+        await context.bot.send_message(chat_id=update.effective_chat.id,
+            text="Epähyvä aikamääre")
         return
 
     if 'tasks' in context.chat_data:
         if name in context.chat_data['tasks']:
-            context.chat_data['tasks'][name].set_interval(new_interval)
-            await context.bot.send_message(chat_id=update.effective_chat.id, text=f"Tehtävän {name} uusi intervalli on {new_interval}")
+            context.chat_data['tasks'][name].set_interval(new_interval,
+                context=context, chat_id=update.effective_chat.id)
+            await context.bot.send_message(chat_id=update.effective_chat.id,
+                text=f"Tehtävän {name} uusi intervalli on {new_interval}. Seuraava muistutus {new_interval} kuluttua.")
         else:
-            await context.bot.send_message(chat_id=update.effective_chat.id, text=f"Tehtävää {name} ei ole olemassa!")
+            await warning_no_task(update, context)
+            return
+    else:
+        await warning_no_tasks(update, context)
+        return
+
+
+async def task_setgrace(update: Update, context: CallbackContext.DEFAULT_TYPE):
+    args = context.args
+    if len(args) != 3:
+        await warning_wrong_number_of_args(update, context)
+        return
+
+    name, interval_str = args[1:]
+    try:
+        grace_interval = str_to_time(interval_str)
+    except ValueError:
+        await context.bot.send_message(chat_id=update.effective_chat.id,
+            text="Epähyvä aikamääre")
+        return
+
+    if 'tasks' in context.chat_data:
+        if name in context.chat_data['tasks']:
+            context.chat_data['tasks'][name].grace_period = grace_interval
+            await context.bot.send_message(chat_id=update.effective_chat.id,
+                text=f"Tehtävän {name} uusi armonaika on {grace_interval}")
+        else:
+            await warning_no_task(update, context)
             return
     else:
         await warning_no_tasks(update, context)
@@ -122,9 +158,10 @@ async def task_join(update: Update, context: CallbackContext.DEFAULT_TYPE):
     if 'tasks' in context.chat_data:
         if name in context.chat_data['tasks']:
             context.chat_data['tasks'][name].add_user(user)
-            await context.bot.send_message(chat_id=update.effective_chat.id, text=f"Tervetuloa, {user.name}. Olette nyt vastuussa tehtävässä \"{name}\"")
+            await context.bot.send_message(chat_id=update.effective_chat.id,
+                text=f"Tervetuloa, {user.name}. Olette nyt vastuussa tehtävässä \"{name}\"")
         else:
-            await context.bot.send_message(chat_id=update.effective_chat.id, text=f"Tehtävää {name} ei ole olemassa!")
+            await warning_no_task(update, context)
             return
     else:
         await warning_no_tasks(update, context)
@@ -142,9 +179,10 @@ async def task_start(update: Update, context: CallbackContext.DEFAULT_TYPE):
         if name in context.chat_data['tasks']:
             context.chat_data['tasks'][name].start(context, update.effective_chat.id)
             interval = context.chat_data['tasks'][name].interval
-            await context.bot.send_message(chat_id=update.effective_chat.id, text=f"Tehtävä {name} aloitettu. Seuraava muistutus {interval} kuluttua.")
+            await context.bot.send_message(chat_id=update.effective_chat.id,
+                text=f"Tehtävä {name} aloitettu. Seuraava muistutus {interval} kuluttua.")
         else:
-            await context.bot.send_message(chat_id=update.effective_chat.id, text=f"Tehtävää {name} ei ole olemassa!")
+            await warning_no_task(update, context)
             return
     else:
         await warning_no_tasks(update, context)
@@ -161,9 +199,10 @@ async def task_stop(update: Update, context: CallbackContext.DEFAULT_TYPE):
     if 'tasks' in context.chat_data:
         if name in context.chat_data['tasks']:
             context.chat_data['tasks'][name].stop(context)
-            await context.bot.send_message(chat_id=update.effective_chat.id, text=f"Tehtävä {name} pysäytetty.")
+            await context.bot.send_message(chat_id=update.effective_chat.id,
+                text=f"Tehtävä {name} pysäytetty.")
         else:
-            await context.bot.send_message(chat_id=update.effective_chat.id, text=f"Tehtävää {name} ei ole olemassa!")
+            await warning_no_task(update, context)
             return
     else:
         await warning_no_tasks(update, context)

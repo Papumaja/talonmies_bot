@@ -9,3 +9,7 @@ async def warning_no_tasks(update: Update, context: CallbackContext.DEFAULT_TYPE
 
 async def warning_unknown(update: Update, context: CallbackContext.DEFAULT_TYPE):
     await context.bot.send_message(chat_id=update.effective_chat.id, text="Häh?")
+
+async def warning_no_task(update: Update, context: CallbackContext.DEFAULT_TYPE):
+    await context.bot.send_message(chat_id=update.effective_chat.id,
+        text=f"Tehtävää ei ole olemassa!")
