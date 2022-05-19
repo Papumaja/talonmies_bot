@@ -21,8 +21,12 @@ async def button_handler(update: Update, context: CallbackContext.DEFAULT_TYPE):
         user = query.from_user
         task = data['task']
         if query.data == 'y':
+            if user.id not in context.chat_data['scores']:
+                context.chat_data['scores'][user.id] = 0
+            context.chat_data['scores'][user.id] += task.score_value
             await query.edit_message_text(
-                text=f"Hyvä, {user.mention_markdown_v2(name=user.name)}, hoitaa homman\! :\)",
+                text=f"Hyvä, {user.mention_markdown_v2(name=user.name)}, hoitaa homman\! :\)\n"
+                f" \+ {task.score_value} XP",
                 parse_mode=constants.ParseMode.MARKDOWN_V2
             )
         else:

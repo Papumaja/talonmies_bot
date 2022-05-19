@@ -14,7 +14,8 @@ class Talonmies:
 
     commands = {
         'start': cmd_start,
-        'task': cmd_task
+        'task': cmd_task,
+        'scoreboard': cmd_scoreboard
     }
 
     def __init__(self, config_path):

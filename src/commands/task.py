@@ -40,6 +40,8 @@ async def task_create(update: Update, context: CallbackContext.DEFAULT_TYPE):
     else:
         context.chat_data['tasks'] = {name: Task(name, interval)}
         context.chat_data['notifications'] = {}
+        context.chat_data['scores'] = {}
+        context.chat_data['users'] = {}
     await context.bot.send_message(chat_id=update.effective_chat.id,
         text=f"Tehtävä {name} luotu!")
     
@@ -156,6 +158,13 @@ async def task_join(update: Update, context: CallbackContext.DEFAULT_TYPE):
         return
 
     if 'tasks' in context.chat_data:
+
+        if user.id not in context.chat_data['scores']:
+            context.chat_data['scores'][user.id] = 0
+
+        if user.id not in context.chat_data['users']:
+            context.chat_data['users'][user.id] = user.name
+
         if name in context.chat_data['tasks']:
             context.chat_data['tasks'][name].add_user(user)
             await context.bot.send_message(chat_id=update.effective_chat.id,

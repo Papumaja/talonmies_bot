@@ -1,4 +1,3 @@
-import asyncio
 import datetime
 
 from telegram import constants, InlineKeyboardButton, InlineKeyboardMarkup
@@ -70,9 +69,13 @@ class Task:
     
     def set_interval(self, interval, context=None, chat_id=None):
         self.interval = interval
-        self.grace_period = datetime.timedelta(minutes=5) # Default of 5 minutes
         # TODO: Command for setting grace period separatedly
+        self.grace_period = datetime.timedelta(minutes=5) # Default of 5 minutes
         if self.grace_period > self.interval: self.grace_period = self.interval / 2
+        # Gamification score
+        self.score_value = int(self.interval.total_seconds())
+
+        # Restart the job
         if context is not None and chat_id is not None:
             self.stop(context)
             self.start(context, chat_id)
