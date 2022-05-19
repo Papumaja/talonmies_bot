@@ -1,6 +1,6 @@
 import configparser
 
-from telegram.ext import ApplicationBuilder, CommandHandler, PicklePersistence, BasePersistence
+from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler, PicklePersistence, BasePersistence
 
 from .commands import *
 
@@ -32,6 +32,7 @@ class Talonmies:
         for cmd_string, cmd_bind in Talonmies.commands.items():
             handler = CommandHandler(cmd_string, cmd_bind)
             self.app.add_handler(handler)
+        self.app.add_handler(CallbackQueryHandler(buttons.button_handler))
     
     def start(self):
         self.app.run_polling(stop_signals=None)

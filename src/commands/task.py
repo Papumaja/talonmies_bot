@@ -36,6 +36,7 @@ async def task_create(update: Update, context: CallbackContext.DEFAULT_TYPE):
         context.chat_data['tasks'][name] = Task(name, interval)
     else:
         context.chat_data['tasks'] = {name: Task(name, interval)}
+        context.chat_data['notifications'] = {}
     await context.bot.send_message(chat_id=update.effective_chat.id, text=f"Tehtävä {name} luotu!")
     
 
@@ -71,7 +72,7 @@ async def task_remove(update: Update, context: CallbackContext.DEFAULT_TYPE):
     if 'tasks' in context.chat_data:
         if name in context.chat_data['tasks']:
             task = context.chat_data['tasks'].pop(name, None)
-            task.stop()
+            task.stop(context)
             await context.bot.send_message(chat_id=update.effective_chat.id, text=f"Tehtävä {name} poistettu.")
         else:
             await context.bot.send_message(chat_id=update.effective_chat.id, text=f"Tehtävää {name} ei ole olemassa!")
@@ -159,7 +160,7 @@ async def task_stop(update: Update, context: CallbackContext.DEFAULT_TYPE):
     name = args[1]
     if 'tasks' in context.chat_data:
         if name in context.chat_data['tasks']:
-            context.chat_data['tasks'][name].stop()
+            context.chat_data['tasks'][name].stop(context)
             await context.bot.send_message(chat_id=update.effective_chat.id, text=f"Tehtävä {name} pysäytetty.")
         else:
             await context.bot.send_message(chat_id=update.effective_chat.id, text=f"Tehtävää {name} ei ole olemassa!")

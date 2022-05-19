@@ -1,7 +1,26 @@
 import datetime
 
-from telegram import constants
+from telegram import constants, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import CallbackContext
+
+
+async def clear_notification(context: CallbackContext, notification_id):
+    if notification_id not in context.chat_data['notifications']: return
+
+    notification = context.chat_data['notifications'].pop(notification_id)
+    resend_job = notification['resend_job']
+    if not resend_job.removed:
+        resend_job.schedule_removal()
+
+    user = notification['user']
+    message = notification['message']
+    await context.bot.edit_message_text(
+        text=f"{user.mention_markdown_v2(name=user.name)} ei saavutettu\.",
+        parse_mode=constants.ParseMode.MARKDOWN_V2,
+        chat_id=context.job.context[1],
+        message_id = message.message_id
+    )
+
 
 async def send_reminder(context: CallbackContext):
     task = context.job.context[0]
@@ -12,11 +31,25 @@ async def send_reminder(context: CallbackContext):
     if task.currentIndex >= n_users:
         task.currentIndex = 0
 
+    # If there is a pending previous reminder, clear it
+    if task.previous_notification is not None:
+        if task.previous_notification in context.chat_data['notifications']:
+            await clear_notification(context, task.previous_notification)
+
     user = task.users[task.currentIndex]
-    await context.bot.send_message(chat_id=chat_id,
+    buttons = [[
+        InlineKeyboardButton("Ei pysty!", callback_data="n"),
+        InlineKeyboardButton("Hoidossa!", callback_data="y")
+    ]]
+    message = await context.bot.send_message(chat_id=chat_id,
                                    text=f"{user.mention_markdown_v2(name=user.name)}, {task.name} vaatii huomiotasi\!",
-                                   parse_mode=constants.ParseMode.MARKDOWN_V2)
-    
+                                   parse_mode=constants.ParseMode.MARKDOWN_V2,
+                                   reply_markup=InlineKeyboardMarkup(buttons))
+    # Resend the reminder after the grace period ends
+    resend_job = context.job_queue.run_once(send_reminder, task.grace_period, chat_id=chat_id, context=context.job.context)
+    context.chat_data['notifications'][message.message_id] = {'message': message, 'task': task, 'user': user, 'resend_job': resend_job}
+    task.previous_notification = message.message_id
+
     task.currentIndex += 1
 
 
@@ -28,6 +61,7 @@ class Task:
         self.users = []
         self.currentIndex = 0
         self.running = False
+        self.previous_notification = None
         self.job = None
     
     def set_interval(self, interval):
@@ -43,7 +77,10 @@ class Task:
         self.job = context.job_queue.run_repeating(send_reminder, self.interval, context=[self, chat_id], chat_id=chat_id)
         self.running = True
     
-    def stop(self):
+    def stop(self, context):
         if self.job is not None:
             self.job.schedule_removal()
+        if self.previous_notification is not None:
+            clear_notification(context, self.previous_notification)
+                
         self.running = False
