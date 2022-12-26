@@ -14,6 +14,7 @@ TASK_HELP_TEXT = """Käyttö:
     /task start <nimi>
     /task stop <nimi>
     /task remove <nimi>
+    /task list
 """
 
 
@@ -218,6 +219,31 @@ async def task_stop(update: Update, context: CallbackContext.DEFAULT_TYPE):
         return
 
 
+async def task_list(update: Update, context: CallbackContext.DEFAULT_TYPE):
+    args = context.args
+    if len(args) != 1:
+        await warning_wrong_number_of_args(update, context)
+        return
+
+    if 'tasks' in context.chat_data:
+        tasks = context.chat_data['tasks'].values()
+        tasks_strs = [f'  Nimi: {t.name}\n  '\
+            +f'Intervalli: {t.interval}\n  '\
+            +f'Ajossa: {str(t.running)}\n  '\
+            +f'Käyttäjät: {", ".join([u.first_name for u in t.users])}'\
+                for t in tasks]
+        list_str = \
+            "Lista taskeista:\n----------\n"\
+           +"\n----------\n".join(tasks_strs)
+        
+        await context.bot.send_message(chat_id=update.effective_chat.id,
+            text=list_str)
+
+    else:
+        await warning_no_tasks(update, context)
+        return
+
+
 COMMANDS = {
     'create': task_create,
     'rename': task_rename,
@@ -225,7 +251,8 @@ COMMANDS = {
     'join': task_join,
     'start': task_start,
     'stop': task_stop,
-    'remove': task_remove
+    'remove': task_remove,
+    'list': task_list
 }
 async def cmd_task(update: Update, context: CallbackContext.DEFAULT_TYPE):
     args = context.args

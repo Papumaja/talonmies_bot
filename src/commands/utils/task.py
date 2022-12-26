@@ -99,7 +99,7 @@ class Task:
             return jobs[0]
     
     def stop(self, context):
-        if self.get_job() is not None:
+        if self.get_job(context) is not None:
             self.get_job(context).schedule_removal()
         if self.previous_notification is not None:
             context.job_queue.run_once(lambda ctx: clear_notification(*(ctx.job.context)), 0, context=[context, self.previous_notification])
