@@ -13,8 +13,10 @@ async def button_handler(update: Update, context: CallbackContext.DEFAULT_TYPE):
     await query.answer()
     if query.from_user.id == data['user'].id:
         # Cancel reminder job for this notification
-        if not data['resend_job'].removed:
-            data['resend_job'].schedule_removal()
+        resend_job_name = data['resend_job']
+        resend_jobs = context.job_queue.get_jobs_by_name(resend_job_name)
+        if len(resend_jobs) > 0:
+            [job.schedule_removal() for job in resend_jobs]
         # Remove the notification as it has been reacted to
         context.chat_data['notifications'].pop(msg_id)
 

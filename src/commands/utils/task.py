@@ -7,19 +7,21 @@ from telegram.ext import CallbackContext
 async def clear_notification(context: CallbackContext, notification_id):
     if notification_id not in context.chat_data['notifications']: return
 
-    notification = context.chat_data['notifications'].pop(notification_id)
-    resend_job = notification['resend_job']
-    if len(context.job_queue.get_jobs_by_name(resend_job.name)) > 0:
-        resend_job.schedule_removal()
-
-    user = notification['user']
-    message = notification['message']
     await context.bot.edit_message_text(
         text=f"{user.mention_markdown_v2(name=user.name)} ei saavutettu\.",
         parse_mode=constants.ParseMode.MARKDOWN_V2,
         chat_id=context.job.context[1],
         message_id = message.message_id
     )
+
+    notification = context.chat_data['notifications'].pop(notification_id)
+    resend_job_name = notification['resend_job']
+    resend_jobs = context.job_queue.get_jobs_by_name(resend_job_name)
+    if len(resend_jobs) > 0:
+        [job.schedule_removal() for job in resend_jobs]
+
+    user = notification['user']
+    message = notification['message']
 
 
 async def send_reminder(context: CallbackContext):
@@ -49,7 +51,7 @@ async def send_reminder(context: CallbackContext):
     resend_job = context.job_queue.run_once(send_reminder, task.grace_period,
         chat_id=chat_id, context=context.job.context, name=f'{message.message_id}_resend')
     context.chat_data['notifications'][message.message_id] = {
-        'message': message, 'task': task, 'user': user, 'resend_job': resend_job
+        'message': message, 'task': task, 'user': user, 'resend_job': resend_job.name
     }
     task.previous_notification = message.message_id
 
@@ -84,12 +86,21 @@ class Task:
         self.users.append(user)
     
     def start(self, context, chat_id):
-        self.job = context.job_queue.run_repeating(send_reminder, self.interval, context=[self, chat_id], chat_id=chat_id)
+        job = context.job_queue.run_repeating(send_reminder, self.interval, context=[self, chat_id], chat_id=chat_id)
+        self.job = job.name
         self.running = True
     
+    def get_job(self, context):
+        jobs = context.job_queue.get_jobs_by_name(self.job)
+        if len(jobs) < 1:
+            self.job = None
+            return None
+        else:
+            return jobs[0]
+    
     def stop(self, context):
-        if self.job is not None:
-            self.job.schedule_removal()
+        if self.get_job() is not None:
+            self.get_job(context).schedule_removal()
         if self.previous_notification is not None:
             context.job_queue.run_once(lambda ctx: clear_notification(*(ctx.job.context)), 0, context=[context, self.previous_notification])
                 
