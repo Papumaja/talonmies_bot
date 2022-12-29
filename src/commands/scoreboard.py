@@ -1,5 +1,10 @@
+import re
+import math
 from telegram import Update
 from telegram.ext import CallbackContext
+
+def get_level(score):
+    return math.floor(math.log(score/10)*10)
 
 def generate_scoreboard(context: CallbackContext):
     scores = context.chat_data.get('scores', None)
@@ -7,8 +12,13 @@ def generate_scoreboard(context: CallbackContext):
         sorted_s = {k: v for k, v in sorted(scores.items(), key = lambda a: a[1], reverse=True)}
         string = "Talonmiehistä parhaat:\n"
         for i, (id, score) in enumerate(sorted_s.items()):
-            name = context.chat_data['users'][id]
-            string += f"{i+1}. {name} - {score} XP\n"
+            name_match = re.match(r'(@)(.*)', context.chat_data['users'][id])
+            if name_match is not None:
+                name = name_match.group(2)
+            else:
+                name = context.chat_data['users'][id]
+            level = get_level(score)
+            string += f"{i+1}. Lvl {level} {name} - {score} XP\n"
     else:
         return "Tyhjä!"
     return string

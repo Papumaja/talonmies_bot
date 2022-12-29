@@ -1,3 +1,4 @@
+import random
 import datetime
 
 from telegram import constants, InlineKeyboardButton, InlineKeyboardMarkup
@@ -7,6 +8,10 @@ from telegram.ext import CallbackContext
 async def clear_notification(context: CallbackContext, notification_id):
     if notification_id not in context.chat_data['notifications']: return
 
+    notification = context.chat_data['notifications'].pop(notification_id)
+    user = notification['user']
+    message = notification['message']
+
     await context.bot.edit_message_text(
         text=f"{user.mention_markdown_v2(name=user.name)} ei saavutettu\.",
         parse_mode=constants.ParseMode.MARKDOWN_V2,
@@ -14,14 +19,10 @@ async def clear_notification(context: CallbackContext, notification_id):
         message_id = message.message_id
     )
 
-    notification = context.chat_data['notifications'].pop(notification_id)
     resend_job_name = notification['resend_job']
     resend_jobs = context.job_queue.get_jobs_by_name(resend_job_name)
     if len(resend_jobs) > 0:
         [job.schedule_removal() for job in resend_jobs]
-
-    user = notification['user']
-    message = notification['message']
 
 
 async def send_reminder(context: CallbackContext):
@@ -41,6 +42,7 @@ async def send_reminder(context: CallbackContext):
     user = task.users[task.currentIndex]
     buttons = [[
         InlineKeyboardButton("Ei pysty!", callback_data="n"),
+        InlineKeyboardButton("Eiku", callback_data="e"),
         InlineKeyboardButton("Hoidossa!", callback_data="y")
     ]]
     message = await context.bot.send_message(chat_id=chat_id,
@@ -68,6 +70,9 @@ class Task:
         self.running = False
         self.previous_notification = None
         self.job = None
+
+    def get_score(self):
+        return random.randint(50, self.score_value)
     
     def set_interval(self, interval, context=None, chat_id=None):
         self.interval = interval
@@ -75,7 +80,7 @@ class Task:
         self.grace_period = datetime.timedelta(minutes=5) # Default of 5 minutes
         if self.grace_period > self.interval: self.grace_period = self.interval / 2
         # Gamification score
-        self.score_value = int(self.interval.total_seconds())
+        self.score_value = max(int(self.interval.total_seconds())*100, 1000000)
 
         # Restart the job
         if context is not None and chat_id is not None:
@@ -90,6 +95,9 @@ class Task:
         self.job = job.name
         self.running = True
     
+    def now(self, context, chat_id):
+        context.job_queue.run_once(send_reminder, 0, context=[self, chat_id], chat_id=chat_id)
+
     def get_job(self, context):
         jobs = context.job_queue.get_jobs_by_name(self.job)
         if len(jobs) < 1:

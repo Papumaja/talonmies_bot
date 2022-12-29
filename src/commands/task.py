@@ -199,6 +199,24 @@ async def task_start(update: Update, context: CallbackContext.DEFAULT_TYPE):
         return
 
 
+async def task_hetinyt(update: Update, context: CallbackContext.DEFAULT_TYPE):
+    args = context.args
+    if len(args) != 2:
+        await warning_wrong_number_of_args(update, context)
+        return
+
+    name = args[1]
+    if 'tasks' in context.chat_data:
+        if name in context.chat_data['tasks']:
+            context.chat_data['tasks'][name].now(context, update.effective_chat.id)
+        else:
+            await warning_no_task(update, context)
+            return
+    else:
+        await warning_no_tasks(update, context)
+        return
+
+
 async def task_stop(update: Update, context: CallbackContext.DEFAULT_TYPE):
     args = context.args
     if len(args) != 2:
@@ -252,6 +270,7 @@ COMMANDS = {
     'start': task_start,
     'stop': task_stop,
     'remove': task_remove,
+    'hetinyt': task_hetinyt,
     'list': task_list
 }
 async def cmd_task(update: Update, context: CallbackContext.DEFAULT_TYPE):

@@ -2,6 +2,7 @@ from datetime import timedelta
 from telegram import Update, constants
 from telegram.ext import CallbackContext
 from .utils.task import send_reminder
+from .scoreboard import get_level
 
 async def button_handler(update: Update, context: CallbackContext.DEFAULT_TYPE):
     query = update.callback_query
@@ -20,15 +21,38 @@ async def button_handler(update: Update, context: CallbackContext.DEFAULT_TYPE):
         # Remove the notification as it has been reacted to
         context.chat_data['notifications'].pop(msg_id)
 
+
         user = query.from_user
         task = data['task']
+
+        # Check if task still exists
+        if not task.name in context.chat_data['tasks']:
+            await query.edit_message_text(
+                text=f"Ööh ääh __kissat__ **koiria** asdfghjklö\n",
+                parse_mode=constants.ParseMode.MARKDOWN_V2
+            )
+            return
+
         if query.data == 'y':
             if user.id not in context.chat_data['scores']:
                 context.chat_data['scores'][user.id] = 0
-            context.chat_data['scores'][user.id] += task.score_value
+            score = task.get_score()
+            level_before = get_level(context.chat_data['scores'][user.id])
+            context.chat_data['scores'][user.id] += score
+            level_after = get_level(context.chat_data['scores'][user.id])
             await query.edit_message_text(
                 text=f"Hyvä, {user.mention_markdown_v2(name=user.name)}, hoitaa homman\! :\)\n"
-                f" \+ {task.score_value} XP",
+                f" \+ {score} XP",
+                parse_mode=constants.ParseMode.MARKDOWN_V2
+            )
+            if level_after > level_before:
+                await context.bot.send_message(chat_id=query.message.chat_id,
+                    text=f"Congratulations {user.mention_markdown_v2(name=user.name)} level up\!\n Uusi talonmiestaso {level_after}",
+                    parse_mode=constants.ParseMode.MARKDOWN_V2)
+
+        elif query.data == 'e':
+            await query.edit_message_text(
+                text=f"Ok, Miksi tehdä tänään sitä minkä voi tehdä huomenna :\)",
                 parse_mode=constants.ParseMode.MARKDOWN_V2
             )
         else:
