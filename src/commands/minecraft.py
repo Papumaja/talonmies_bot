@@ -31,13 +31,13 @@ def death_message():
     ]
     return msgs[random.randint(0,len(msgs)-1)]
 
-async def cmd_spawn(update: Update, context: CallbackContext.DEFAULT_TYPE):
+async def cmd_spawn(update: Update, context):
     user = update.effective_user
     await context.bot.send_message(chat_id=update.effective_chat.id,
         text=f'``` Tervetuloa MuroCraftiin, {user.first_name}! Muistathan lukea säännöt :\)```',
         parse_mode='MarkdownV2')
 
-async def cmd_tp(update: Update, context: CallbackContext.DEFAULT_TYPE):
+async def cmd_tp(update: Update, context):
     user = update.effective_user
     await context.bot.send_message(chat_id=update.effective_chat.id,
         text='``` '+death_message().format(user.first_name)+'```',

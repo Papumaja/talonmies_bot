@@ -18,7 +18,7 @@ TASK_HELP_TEXT = """Käyttö:
 """
 
 
-async def task_create(update: Update, context: CallbackContext.DEFAULT_TYPE):
+async def task_create(update: Update, context):
     args = context.args
     if len(args) != 3:
         await warning_wrong_number_of_args(update, context)
@@ -48,7 +48,7 @@ async def task_create(update: Update, context: CallbackContext.DEFAULT_TYPE):
     
 
 
-async def task_rename(update: Update, context: CallbackContext.DEFAULT_TYPE):
+async def task_rename(update: Update, context):
     args = context.args
     if len(args) != 3:
         await warning_wrong_number_of_args(update, context)
@@ -70,7 +70,7 @@ async def task_rename(update: Update, context: CallbackContext.DEFAULT_TYPE):
         return
         
 
-async def task_remove(update: Update, context: CallbackContext.DEFAULT_TYPE):
+async def task_remove(update: Update, context):
     args = context.args
     if len(args) != 2:
         await warning_wrong_number_of_args(update, context)
@@ -91,7 +91,7 @@ async def task_remove(update: Update, context: CallbackContext.DEFAULT_TYPE):
         return
 
 
-async def task_setinterval(update: Update, context: CallbackContext.DEFAULT_TYPE):
+async def task_setinterval(update: Update, context):
     args = context.args
     if len(args) != 3:
         await warning_wrong_number_of_args(update, context)
@@ -119,7 +119,7 @@ async def task_setinterval(update: Update, context: CallbackContext.DEFAULT_TYPE
         return
 
 
-async def task_setgrace(update: Update, context: CallbackContext.DEFAULT_TYPE):
+async def task_setgrace(update: Update, context):
     args = context.args
     if len(args) != 3:
         await warning_wrong_number_of_args(update, context)
@@ -146,7 +146,7 @@ async def task_setgrace(update: Update, context: CallbackContext.DEFAULT_TYPE):
         return
 
 
-async def task_join(update: Update, context: CallbackContext.DEFAULT_TYPE):
+async def task_join(update: Update, context):
     args = context.args
     if len(args) != 2:
         await warning_wrong_number_of_args(update, context)
@@ -178,7 +178,7 @@ async def task_join(update: Update, context: CallbackContext.DEFAULT_TYPE):
         return
 
 
-async def task_start(update: Update, context: CallbackContext.DEFAULT_TYPE):
+async def task_start(update: Update, context):
     args = context.args
     if len(args) != 2:
         await warning_wrong_number_of_args(update, context)
@@ -199,7 +199,7 @@ async def task_start(update: Update, context: CallbackContext.DEFAULT_TYPE):
         return
 
 
-async def task_hetinyt(update: Update, context: CallbackContext.DEFAULT_TYPE):
+async def task_hetinyt(update: Update, context):
     args = context.args
     if len(args) != 2:
         await warning_wrong_number_of_args(update, context)
@@ -217,7 +217,7 @@ async def task_hetinyt(update: Update, context: CallbackContext.DEFAULT_TYPE):
         return
 
 
-async def task_stop(update: Update, context: CallbackContext.DEFAULT_TYPE):
+async def task_stop(update: Update, context):
     args = context.args
     if len(args) != 2:
         await warning_wrong_number_of_args(update, context)
@@ -237,7 +237,7 @@ async def task_stop(update: Update, context: CallbackContext.DEFAULT_TYPE):
         return
 
 
-async def task_list(update: Update, context: CallbackContext.DEFAULT_TYPE):
+async def task_list(update: Update, context):
     args = context.args
     if len(args) != 1:
         await warning_wrong_number_of_args(update, context)
@@ -273,7 +273,7 @@ COMMANDS = {
     'hetinyt': task_hetinyt,
     'list': task_list
 }
-async def cmd_task(update: Update, context: CallbackContext.DEFAULT_TYPE):
+async def cmd_task(update: Update, context):
     args = context.args
     if len(args) == 0:
         await context.bot.send_message(chat_id=update.effective_chat.id, text=TASK_HELP_TEXT)

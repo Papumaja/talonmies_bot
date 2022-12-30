@@ -15,7 +15,7 @@ async def clear_notification(context: CallbackContext, notification_id):
     await context.bot.edit_message_text(
         text=f"{user.mention_markdown_v2(name=user.name)} ei saavutettu\.",
         parse_mode=constants.ParseMode.MARKDOWN_V2,
-        chat_id=context.job.context[1],
+        chat_id=context.job.data[1],
         message_id = message.message_id
     )
 
@@ -26,8 +26,8 @@ async def clear_notification(context: CallbackContext, notification_id):
 
 
 async def send_reminder(context: CallbackContext):
-    task = context.job.context[0]
-    chat_id = context.job.context[1]
+    task = context.job.data[0]
+    chat_id = context.job.data[1]
     n_users = len(task.users)
     if n_users < 1:
         return
@@ -51,7 +51,7 @@ async def send_reminder(context: CallbackContext):
         reply_markup=InlineKeyboardMarkup(buttons))
     # Resend the reminder after the grace period ends
     resend_job = context.job_queue.run_once(send_reminder, task.grace_period,
-        chat_id=chat_id, context=context.job.context, name=f'{message.message_id}_resend')
+        chat_id=chat_id, name=f'{message.message_id}_resend')
     context.chat_data['notifications'][message.message_id] = {
         'message': message, 'task': task, 'user': user, 'resend_job': resend_job.name
     }
@@ -91,12 +91,12 @@ class Task:
         self.users.append(user)
     
     def start(self, context, chat_id):
-        job = context.job_queue.run_repeating(send_reminder, self.interval, context=[self, chat_id], chat_id=chat_id)
+        job = context.job_queue.run_repeating(send_reminder, self.interval, data=[self, chat_id], chat_id=chat_id)
         self.job = job.name
         self.running = True
     
     def now(self, context, chat_id):
-        context.job_queue.run_once(send_reminder, 0, context=[self, chat_id], chat_id=chat_id)
+        context.job_queue.run_once(send_reminder, 0, data=[self, chat_id], chat_id=chat_id)
 
     def get_job(self, context):
         jobs = context.job_queue.get_jobs_by_name(self.job)
@@ -110,6 +110,6 @@ class Task:
         if self.get_job(context) is not None:
             self.get_job(context).schedule_removal()
         if self.previous_notification is not None:
-            context.job_queue.run_once(lambda ctx: clear_notification(*(ctx.job.context)), 0, context=[context, self.previous_notification])
+            context.job_queue.run_once(lambda ctx: clear_notification(*(ctx.job.data)), 0, data=[context, self.previous_notification])
                 
         self.running = False

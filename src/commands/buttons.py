@@ -4,7 +4,7 @@ from telegram.ext import CallbackContext
 from .utils.task import send_reminder
 from .scoreboard import get_level
 
-async def button_handler(update: Update, context: CallbackContext.DEFAULT_TYPE):
+async def button_handler(update: Update, context):
     query = update.callback_query
     msg_id = query.message.message_id
     if msg_id not in context.chat_data['notifications']:
@@ -62,5 +62,5 @@ async def button_handler(update: Update, context: CallbackContext.DEFAULT_TYPE):
             )
             # Send to the next user
             chat_id = query.message.chat_id
-            resend_job = context.job_queue.run_once(send_reminder, timedelta(seconds=0), chat_id=chat_id, context=[task, chat_id])
+            resend_job = context.job_queue.run_once(send_reminder, timedelta(seconds=0), chat_id=chat_id, data=[task, chat_id])
 

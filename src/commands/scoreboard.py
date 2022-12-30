@@ -4,7 +4,10 @@ from telegram import Update
 from telegram.ext import CallbackContext
 
 def get_level(score):
-    return math.floor(math.log(score/10)*10)
+    if score == 0:
+        return 0
+    else:
+        return math.floor(math.log(score/10)*10)
 
 def generate_scoreboard(context: CallbackContext):
     scores = context.chat_data.get('scores', None)
@@ -23,6 +26,6 @@ def generate_scoreboard(context: CallbackContext):
         return "Tyhjä!"
     return string
 
-async def cmd_scoreboard(update: Update, context: CallbackContext.DEFAULT_TYPE):
+async def cmd_scoreboard(update: Update, context):
     await context.bot.send_message(chat_id=update.effective_chat.id,
         text=generate_scoreboard(context))
