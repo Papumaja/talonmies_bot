@@ -3,6 +3,14 @@ import math
 from telegram import Update
 from telegram.ext import CallbackContext
 
+def get_user_level(context, user_id):
+    scores = context.chat_data.get('scores', None)
+    if scores is not None:
+        score = scores.get(user_id)
+        if score is not None:
+            return get_level(score)
+    return 0
+
 def get_level(score):
     if score == 0:
         return 0

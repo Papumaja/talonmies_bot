@@ -32,7 +32,8 @@ class Talonmies:
         'task': cmd_task,
         'scoreboard': cmd_scoreboard,
         'tp': cmd_tp,
-        'spawn': cmd_spawn
+        'spawn': cmd_spawn,
+        'wildu': cmd_wildu
     }
 
     def __init__(self, config_path):
