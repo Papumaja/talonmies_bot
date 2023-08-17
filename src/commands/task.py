@@ -183,10 +183,20 @@ async def task_start(update: Update, context):
     if len(args) != 2:
         await warning_wrong_number_of_args(update, context)
         return
+    
+    if update.effective_user.first_name == 'Lauri':
+        await context.bot.send_message(chat_id=update.effective_chat.id,
+            text=f"Haista Lauri vittu")
+        return
 
     name = args[1]
     if 'tasks' in context.chat_data:
         if name in context.chat_data['tasks']:
+            if context.chat_data['tasks'][name].running:
+                await context.bot.send_message(chat_id=update.effective_chat.id,
+                    text=f"Tehtävä on jo käynnissä.")
+                return
+
             context.chat_data['tasks'][name].start(context, update.effective_chat.id)
             interval = context.chat_data['tasks'][name].interval
             await context.bot.send_message(chat_id=update.effective_chat.id,

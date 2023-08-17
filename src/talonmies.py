@@ -3,6 +3,7 @@ import configparser
 from telegram.ext import ApplicationBuilder, CommandHandler,\
     CallbackQueryHandler, PicklePersistence, BasePersistence,\
     CallbackContext, Application
+from telegram.error import Forbidden
 
 from .commands import *
 
@@ -15,9 +16,13 @@ async def post_init(app):
     # Restart jobs
     for id, chat_data in app.chat_data.items():
         context = CallbackContext(app, chat_id=id)
-        await context.bot.send_message(chat_id=id,
-            text="Morjensta pöytään! Adminit käynnisteli uuestaan, teiän jobien intervallit"\
-                +" alkaa kans nyt uusiks, käyttäkää /task hetinyt <nimi> jos oli kohta tulossa :D")
+        try:
+            await context.bot.send_message(chat_id=id,
+                text="Morjensta pöytään! Adminit käynnisteli uuestaan, teiän jobien intervallit"\
+                    +" alkaa kans nyt uusiks, käyttäkää /task hetinyt <nimi> jos oli kohta tulossa :D")
+        except Forbidden:
+            print('Someone has blocked the bot lol')
+
         if 'tasks' in chat_data:
             for task in chat_data['tasks'].values():
                 if task.running:
