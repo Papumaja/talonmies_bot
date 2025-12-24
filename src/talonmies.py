@@ -28,7 +28,7 @@ class TalonmiesData(PicklePersistence):
 
 async def post_init(app):
     # Restart jobs
-    return
+
     for id, chat_data in app.chat_data.items():
         context = CallbackContext(app, chat_id=id)
         try:
@@ -60,6 +60,7 @@ class Talonmies:
         "scrandle_stop": cmd_close_scrandle_poll,
         "scrandle_top": cmd_scrandle_result,
         "scrandle_info": cmd_scrandle_info,
+        "scrandle_time": cmd_scrandle_timed,
     }
 
     def __init__(self, config):

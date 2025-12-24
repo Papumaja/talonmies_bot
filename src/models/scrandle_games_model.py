@@ -21,12 +21,3 @@ class ScrandleGame(ScrandleGameBase, table=True):
         sa_relationship_kwargs={"cascade": "all,delete,delete-orphan"},
         back_populates="game",
     )
-
-    # user_groups: List["UserGroup"] = Relationship(
-    #    back_populates="members",
-    #    link_model=UserGroupMembersLink,
-    # )
-    # game_sessions: List["GameSession"] = Relationship(
-    #    back_populates="participants",
-    #    link_model=SessionParticipantsLink,
-    # )
