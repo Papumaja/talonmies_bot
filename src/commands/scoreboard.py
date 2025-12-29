@@ -11,11 +11,14 @@ def get_user_level(context, user_id):
             return get_level(score)
     return 0
 
+def get_xp(task_interval_s):
+    return max(int(task_interval_s/60), 1)
+
 def get_level(score):
     if score == 0:
         return 0
     else:
-        return math.floor(math.log(score/10)*10)
+        return math.floor(math.log(score))
 
 def generate_scoreboard(context: CallbackContext):
     scores = context.chat_data.get('scores', None)

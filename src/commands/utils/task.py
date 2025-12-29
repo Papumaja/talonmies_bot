@@ -4,6 +4,8 @@ import datetime
 from telegram import constants, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import CallbackContext
 
+from scoreboard import get_xp
+
 
 async def clear_notification(context: CallbackContext, notification_id):
     if notification_id not in context.chat_data['notifications']: return
@@ -80,7 +82,7 @@ class Task:
         self.grace_period = datetime.timedelta(minutes=5) # Default of 5 minutes
         if self.grace_period > self.interval: self.grace_period = self.interval / 2
         # Gamification score
-        self.score_value = max(int(self.interval.total_seconds())*100, 1000000)
+        self.score_value = get_xp(self.interval.total_seconds())
 
         # Restart the job
         if context is not None and chat_id is not None:
