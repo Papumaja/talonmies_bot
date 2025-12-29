@@ -3,6 +3,8 @@ import math
 from telegram import Update
 from telegram.ext import CallbackContext
 
+BASE_XP_TO_LVL = 30
+
 def get_user_level(context, user_id):
     scores = context.chat_data.get('scores', None)
     if scores is not None:
@@ -15,10 +17,12 @@ def get_xp(task_interval_s):
     return max(int(task_interval_s/60), 1)
 
 def get_level(score):
-    if score == 0:
-        return 0
-    else:
-        return math.floor(math.log(score))
+    level = 0.0
+    levelscore = score - BASE_XP_TO_LVL
+    while levelscore > 0:
+        levelscore -= (BASE_XP_TO_LVL + math.pow(level, 2))
+        level += 1.0
+    return int(level)
 
 def generate_scoreboard(context: CallbackContext):
     scores = context.chat_data.get('scores', None)

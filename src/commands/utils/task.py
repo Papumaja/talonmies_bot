@@ -4,7 +4,7 @@ import datetime
 from telegram import constants, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import CallbackContext
 
-from scoreboard import get_xp
+from ..scoreboard import get_xp
 
 
 async def clear_notification(context: CallbackContext, notification_id):
@@ -74,7 +74,7 @@ class Task:
         self.job = None
 
     def get_score(self):
-        return random.randint(50, self.score_value)
+        return max(1, random.randint(int(self.score_value*0.5), int(self.score_value*1.5)))
     
     def set_interval(self, interval, context=None, chat_id=None):
         self.interval = interval
