@@ -1,6 +1,6 @@
 # Bot token
 TOKEN
-config
+config.ini
 
 # Runtime data
 data/*

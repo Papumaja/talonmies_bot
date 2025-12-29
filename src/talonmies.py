@@ -66,11 +66,10 @@ class Talonmies:
     def __init__(self, config):
         self.data = TalonmiesData("./data/runtime.pickle")
         create_db_and_tables()
-
         # Persistence makes the bot to store all internal variables on disk
         self.app = (
             Application.builder()
-            .token(config.get("bot_token"))
+            .token(config['API']['bot_token'])
             .persistence(persistence=self.data)
             .post_init(post_init)
             .build()

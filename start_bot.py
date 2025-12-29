@@ -1,5 +1,5 @@
 import asyncio
-from dotenv import dotenv_values
+import configparser
 
 import logging
 from src.talonmies import Talonmies
@@ -9,10 +9,11 @@ logging.basicConfig(
     level=logging.INFO
 )
 
-config = dotenv_values("config")
 
 def main():
-    talonmies = Talonmies(config)
+    parser = configparser.ConfigParser()
+    parser.read('config.ini')
+    talonmies = Talonmies(parser)
     talonmies.start()
     
 if __name__ == '__main__':
