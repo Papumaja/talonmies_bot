@@ -1,5 +1,6 @@
 # Bot token
 TOKEN
+config
 
 # Runtime data
 data/*

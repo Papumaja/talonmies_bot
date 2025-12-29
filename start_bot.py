@@ -9,7 +9,7 @@ logging.basicConfig(
     level=logging.INFO
 )
 
-config = dotenv_values("config_example")
+config = dotenv_values("config")
 
 def main():
     talonmies = Talonmies(config)
