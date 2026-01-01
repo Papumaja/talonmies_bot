@@ -1,9 +1,9 @@
 from sqlmodel import create_engine, SQLModel, Session, Relationship
 import functools
-from .models.scran_model import Scran
-from .models.scrandle_games_model import ScrandleGame
-from .models.scrandle_participants_model import ScrandleParticipant
-from .models.user_model import User
+from models.scran_model import Scran
+from models.scrandle_games_model import ScrandleGame
+from models.scrandle_participants_model import ScrandleParticipant
+from models.user_model import User
 
 sqlite_file_name = "database.db"
 

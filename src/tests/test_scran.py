@@ -10,15 +10,15 @@ from PIL import Image
 from pathlib import Path
 import uuid
 
-from ..database import *
+from database import *
 
-from ..models.scran_crud import create_scran, is_valid_scran_hash
-from ..models.user_model import User
-from ..models.scrandle_participants_model import ScrandleParticipant
+from models.scran_crud import create_scran, is_valid_scran_hash
+from models.user_model import User
+from models.scrandle_participants_model import ScrandleParticipant
 
 
-from ..models.scrandle_games_crud import get_unique_matchup, create_scran_match
-from ..handlers.scran_reader import validate_save_msg_scrans
+from models.scrandle_games_crud import get_unique_matchup, create_scran_match
+from handlers.scran_reader import validate_save_msg_scrans
 
 
 def scranmaker(session: Session, user: User, chat=1) -> Scran:

@@ -13,11 +13,11 @@ from telegram.ext import (
     filters,
 )
 from telegram.error import Forbidden
-from .handlers.scran_reader import validate_save_msg_scrans, ScranFilter
-from .commands.scrandle import handle_scran_poll_update
-from .database import create_db_and_tables
+from handlers.scran_reader import validate_save_msg_scrans, ScranFilter
+from commands.scrandle import handle_scran_poll_update
+from database import create_db_and_tables
 
-from .commands import *
+from commands import *
 
 
 class TalonmiesData(PicklePersistence):

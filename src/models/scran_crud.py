@@ -3,10 +3,10 @@ from sqlmodel import Session, select, and_, asc, desc
 from pydantic import ValidationError
 from imagehash import ImageHash
 
-from .scran_model import Scran
+from models.scran_model import Scran
 
-from .user_crud import create_user, get_user
-from .user_model import User
+from models.user_crud import create_user, get_user
+from models.user_model import User
 
 
 def create_scran(

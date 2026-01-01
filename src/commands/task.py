@@ -1,9 +1,9 @@
 from telegram import Update
 from telegram.ext import CallbackContext
 
-from .utils.task import Task
-from .utils.warnings import *
-from .utils.helpers import *
+from commands.utils.task import Task
+from commands.utils.warnings import *
+from commands.utils.helpers import *
 
 TASK_HELP_TEXT = """Käyttö: 
     /task create <nimi> <intervalli>
