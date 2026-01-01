@@ -41,3 +41,6 @@ dev = [
     "ruff>=0.14.10",
     "ty>=0.0.8",
 ]
+
+[tool.ruff.format]
+quote-style = "single"
