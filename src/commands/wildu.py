@@ -3,8 +3,8 @@ import math
 import random
 from telegram import Update, User, constants
 from telegram.ext import CallbackContext
-from .scoreboard import get_user_level
-from .utils.warnings import *
+from commands.scoreboard import get_user_level
+from commands.utils.warnings import *
 
 
 class WilduWeapon:

@@ -3,7 +3,7 @@ from sqlmodel import Session, select, update
 from sqlalchemy.orm import aliased
 
 
-from .scrandle_participants_model import ScrandleParticipant
+from models.scrandle_participants_model import ScrandleParticipant
 
 
 def check_scran_game_exists(session: Session, scran1_id: int, scran2_id: int) -> bool:

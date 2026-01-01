@@ -8,10 +8,10 @@ from telegram.ext import (
 )
 from telegram.ext.filters import MessageFilter
 
-from ..models.scran_crud import is_valid_scran_hash, create_scran
-from ..models.user_model import User
-from ..database import inject_session
-from ..utils.file_handlers import save_image_to_disk
+from models.scran_crud import is_valid_scran_hash, create_scran
+from models.user_model import User
+from database import inject_session
+from utils.file_handlers import save_image_to_disk
 
 
 class ScranFilter(MessageFilter):

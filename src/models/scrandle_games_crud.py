@@ -3,9 +3,9 @@ from sqlmodel import Session, select, and_, col, func, case
 from sqlalchemy.orm import aliased
 
 
-from .scrandle_games_model import ScrandleGame
-from .scran_model import Scran
-from .user_model import User
+from models.scrandle_games_model import ScrandleGame
+from models.scran_model import Scran
+from models.user_model import User
 
 from .scrandle_participants_model import ScrandleParticipant
 
